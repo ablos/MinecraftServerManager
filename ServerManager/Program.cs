@@ -18,7 +18,9 @@ namespace ServerManager
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new SyncForm());
+            Application.Run(new SyncForm(true));
+            Application.Run(new ServerForm());
+            Application.Run(new SyncForm(false));
         }
     }
 }

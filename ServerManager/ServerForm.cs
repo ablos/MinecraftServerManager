@@ -303,7 +303,11 @@ namespace ServerManager
                 e.Cancel = true;
             }
 
-            Process.GetProcessesByName("ngrok.exe")[0].Kill();
+            try
+            {
+                Process.GetProcessesByName("ngrok.exe")[0].Kill();
+            }
+            catch { }
         }
 
         private void CommandBox_KeyDown(object sender, KeyEventArgs e)

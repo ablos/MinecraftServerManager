@@ -122,6 +122,8 @@ namespace ServerManager
             UpdateProgressBar(progressBar.Maximum);
             UpdateStatusLabel("Authenticated Google Drive.");
 
+            // Check here if server is already running
+
             List<Google.Apis.Drive.v3.Data.File> driveFiles = await Task.Run(async () => await getDriveFiles(service));
             FileInfo[] serverFiles = Functions.GetServerFiles(new DirectoryInfo(serverDirectory));
 

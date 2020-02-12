@@ -100,8 +100,6 @@
   <ItemGroup>
     <Compile Include="EmbeddedAssembly.cs" />
     <Compile Include="Functions.cs" />
-    <Compile Include="ProcessCounter.cs" />
-    <Compile Include="RichTextBoxExtensions.cs" />
     <Compile Include="ServerForm.cs">
       <SubType>Form</SubType>
     </Compile>

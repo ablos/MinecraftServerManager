@@ -32,7 +32,7 @@ namespace ServerManager
 
                 using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resource))
                 {
-                    Byte[] assemblyData = new Byte[stream.Length];
+                    byte[] assemblyData = new byte[stream.Length];
                     stream.Read(assemblyData, 0, assemblyData.Length);
                     return Assembly.Load(assemblyData);
                 }
@@ -106,6 +106,8 @@ namespace ServerManager
                 DownloadSync(service, driveFiles, serverDirectory);
             else
                 UploadSync(service, driveFiles, serverFiles, serverDirectory);
+
+            Console.WriteLine("Sync completed.");
         }
 
         private async void DownloadSync(DriveService service, List<Google.Apis.Drive.v3.Data.File> driveFiles, string serverDirectory)
@@ -147,8 +149,6 @@ namespace ServerManager
                             Console.WriteLine("Download complete.");
                             string saveto = Path.GetTempPath() + Guid.NewGuid().ToString() + Path.GetExtension(driveFile.Name);
                             SaveStream(stream, serverDirectory + driveFile.Name);
-                            //System.IO.File.Move(saveto, serverDirectory + driveFile.Name);
-                            //System.IO.File.Delete(saveto);
                             break;
                         }
                     case Google.Apis.Download.DownloadStatus.Failed:
@@ -185,7 +185,6 @@ namespace ServerManager
                         {
                             if (driveFiles[i].ModifiedTime < serverFile.LastAccessTime)
                             {
-                                Console.WriteLine("Replacing file: " + driveFiles[i].Name);
                                 await deleteFile(service, driveFiles[i].Id);
                                 await uploadFile(service, serverFile.FullName, serverDirectory);
 
@@ -202,8 +201,6 @@ namespace ServerManager
 
                     if (!foundFile)
                     {
-                        Console.WriteLine("Couldnt find: " + serverFile.FullName.Replace(serverDirectory, ""));
-                        
                         await uploadFile(service, serverFile.FullName, serverDirectory);
                         changesMade = true;
                     }
@@ -213,16 +210,11 @@ namespace ServerManager
             // Delete all files that don't exist in the local directory anymore
             foreach (Google.Apis.Drive.v3.Data.File driveFile in driveFiles)
             {
-                Console.WriteLine("This doesnt exist locally anymore: " + driveFile.Name);
                 await deleteFile(service, driveFile.Id);
             }
 
-            Console.WriteLine("Check if changes are made");
-
             if (!changesMade)
                 return;
-
-            Console.WriteLine("Updating modify times");
 
             driveFiles = await getDriveFiles(service);
 
@@ -230,8 +222,6 @@ namespace ServerManager
             {
                 System.IO.File.SetLastWriteTime(serverDirectory + driveFile.Name, driveFile.ModifiedTime.Value);
             }
-
-            Console.WriteLine("done");
         }
 
         private static async Task deleteFile(DriveService service, string fileID)
@@ -298,8 +288,6 @@ namespace ServerManager
                 result = await listRequest.ExecuteAsync();
                 driveFiles.AddRange(result.Files);
             }
-
-            Console.WriteLine("Retrieved all files");
 
             return driveFiles;
         }

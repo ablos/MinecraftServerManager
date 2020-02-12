@@ -36,6 +36,8 @@ namespace ServerManager
             ipCopyTip.ShowAlways = true;
             ipCopyTip.Active = false;
             ipCopyTip.SetToolTip(ipLabel, "Click to copy");
+
+            ramLabel.Text = "0/" + (Settings.memSize * 1024) + " MB RAM";
         }
 
         private void IpLabel_Click(object sender, EventArgs e)
@@ -347,6 +349,8 @@ namespace ServerManager
             SettingsForm settings = new SettingsForm();
             settings.ShowInTaskbar = false;
             settings.ShowDialog();
+
+            ramLabel.Text = "0/" + (Settings.memSize * 1024) + " MB RAM";
         }
     }
 }

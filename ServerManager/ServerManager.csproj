@@ -57,25 +57,32 @@
   <ItemGroup>
     <Reference Include="Google.Apis, Version=1.43.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.Apis.1.43.0\lib\net45\Google.Apis.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Google.Apis.Auth, Version=1.43.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.Apis.Auth.1.43.0\lib\net45\Google.Apis.Auth.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Google.Apis.Auth.PlatformServices, Version=1.43.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.Apis.Auth.1.43.0\lib\net45\Google.Apis.Auth.PlatformServices.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Google.Apis.Core, Version=1.43.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.Apis.Core.1.43.0\lib\net45\Google.Apis.Core.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Google.Apis.Drive.v3, Version=1.43.0.1841, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.Apis.Drive.v3.1.43.0.1841\lib\net45\Google.Apis.Drive.v3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Google.Apis.PlatformServices, Version=1.43.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.Apis.1.43.0\lib\net45\Google.Apis.PlatformServices.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -91,6 +98,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EmbeddedAssembly.cs" />
     <Compile Include="Functions.cs" />
     <Compile Include="ProcessCounter.cs" />
     <Compile Include="RichTextBoxExtensions.cs" />
@@ -115,6 +123,13 @@
     <Compile Include="SyncForm.Designer.cs">
       <DependentUpon>SyncForm.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="lib\Google.Apis.Auth.dll" />
+    <EmbeddedResource Include="lib\Google.Apis.Auth.PlatformServices.dll" />
+    <EmbeddedResource Include="lib\Google.Apis.Core.dll" />
+    <EmbeddedResource Include="lib\Google.Apis.dll" />
+    <EmbeddedResource Include="lib\Google.Apis.Drive.v3.dll" />
+    <EmbeddedResource Include="lib\Google.Apis.PlatformServices.dll" />
+    <EmbeddedResource Include="lib\Newtonsoft.Json.dll" />
     <EmbeddedResource Include="ServerForm.resx">
       <DependentUpon>ServerForm.cs</DependentUpon>
     </EmbeddedResource>

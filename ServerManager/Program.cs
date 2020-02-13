@@ -21,7 +21,6 @@ namespace ServerManager
             EmbeddedAssembly.Load("ServerManager.lib.Google.Apis.PlatformServices.dll", "Google.Apis.PlatformServices.dll");
             EmbeddedAssembly.Load("ServerManager.lib.Newtonsoft.Json.dll", "Newtonsoft.Json.dll");
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
-
             // Load settings
             Functions.LoadSettings();
 
@@ -30,7 +29,8 @@ namespace ServerManager
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new SyncForm(true));
             Application.Run(new ServerForm());
-            Application.Run(new SyncForm(false));
+            if (!Settings.hasCompletedUpload)
+                Application.Run(new SyncForm(false));
         }
 
         // When app can't find DLL it will be found here

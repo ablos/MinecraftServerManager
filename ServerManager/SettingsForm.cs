@@ -31,16 +31,9 @@ namespace ServerManager
 
         private void SettingsForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (!Directory.Exists(serverDirectoryBox.Text))
+            if (!File.Exists((string.IsNullOrEmpty(serverDirectoryBox.Text) ? Environment.CurrentDirectory : serverDirectoryBox.Text) + "\\" + serverFilenameBox.Text))
             {
-                MessageBox.Show("Invalid directory given for 'Server directory'", "Settings error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                e.Cancel = true;
-                return;
-            }
-
-            if (!Directory.Exists(ngrokDirectoryBox.Text))
-            {
-                MessageBox.Show("Invalid directory given for 'NGROK directory'", "Settings error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Invalid filename given for 'Server filename'", "Settings error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 e.Cancel = true;
                 return;
             }
@@ -113,7 +106,10 @@ namespace ServerManager
         {
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
-                ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                if (string.IsNullOrEmpty(Settings.serverDirectory))
+                    ofd.InitialDirectory = Environment.CurrentDirectory;
+                else
+                    ofd.InitialDirectory = Settings.serverDirectory;
                 ofd.Filter = "Java Files (*.jar)|*.jar";
                 ofd.RestoreDirectory = true;
 

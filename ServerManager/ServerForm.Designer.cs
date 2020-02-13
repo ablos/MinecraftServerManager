@@ -221,7 +221,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(978, 612);
             this.Name = "ServerForm";
-            this.Text = "Server Manager";
+            this.Text = "Server Console - Offline";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ServerForm_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();

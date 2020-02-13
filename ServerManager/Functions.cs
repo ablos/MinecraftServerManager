@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.Linq;
 using System.Drawing;
+using System.Security.Cryptography;
 
 namespace ServerManager
 {
@@ -37,6 +38,7 @@ namespace ServerManager
             public string serverDirectory;
             public string serverFileName;
             public string ngrokDirectory;
+            public bool hasCompletedUpload;
         }
 
         public static void SaveSettings()
@@ -49,6 +51,7 @@ namespace ServerManager
             settings.serverDirectory = Settings.serverDirectory;
             settings.serverFileName = Settings.serverFileName;
             settings.ngrokDirectory = Settings.ngrokDirectory;
+            settings.hasCompletedUpload = Settings.hasCompletedUpload;
 
             using (Stream stream = File.Create("server.settings"))
             {
@@ -74,6 +77,19 @@ namespace ServerManager
                 Settings.serverDirectory = settings.serverDirectory;
                 Settings.serverFileName = settings.serverFileName;
                 Settings.ngrokDirectory = settings.ngrokDirectory;
+                Settings.hasCompletedUpload = settings.hasCompletedUpload;
+            }
+        }
+
+        public static string GetMD5Hash(string filePath)
+        {
+            using (MD5 md5 = MD5.Create())
+            {
+                using (FileStream stream = File.OpenRead(filePath))
+                {
+                    byte[] hash = md5.ComputeHash(stream);
+                    return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                }
             }
         }
 

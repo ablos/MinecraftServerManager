@@ -9,5 +9,7 @@
         public static string serverDirectory = @"";
         public static string serverFileName = "server.jar";
         public static string ngrokDirectory = @"";
+
+        public static bool hasCompletedUpload = true;
     }
 }

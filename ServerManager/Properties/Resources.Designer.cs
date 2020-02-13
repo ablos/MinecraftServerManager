@@ -59,5 +59,45 @@ namespace ServerManager.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] credentials {
+            get {
+                object obj = ResourceManager.GetObject("credentials", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon server_loading {
+            get {
+                object obj = ResourceManager.GetObject("server_loading", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon server_offline {
+            get {
+                object obj = ResourceManager.GetObject("server_offline", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon server_online {
+            get {
+                object obj = ResourceManager.GetObject("server_online", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
     }
 }

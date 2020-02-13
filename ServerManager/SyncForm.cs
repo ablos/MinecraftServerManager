@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,6 +9,7 @@ using Google.Apis.Drive.v3.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using System.Threading;
+using System.Diagnostics;
 
 namespace ServerManager
 {
@@ -32,25 +32,20 @@ namespace ServerManager
             "server.settings",
             "credentials.json",
             "\\token.json\\",
-            "server-ip="
+            "server-ip=",
+            Path.GetFileName(Application.ExecutablePath)
         };
 
         public SyncForm(bool download = true)
         {
             this.download = download;
 
-            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+            try
             {
-                string resourceName = new AssemblyName(args.Name).Name + ".dll";
-                string resource = Array.Find(this.GetType().Assembly.GetManifestResourceNames(), element => element.EndsWith(resourceName));
-
-                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resource))
-                {
-                    byte[] assemblyData = new byte[stream.Length];
-                    stream.Read(assemblyData, 0, assemblyData.Length);
-                    return Assembly.Load(assemblyData);
-                }
-            };
+                Process.GetProcessesByName("ngrok")[0].Kill();
+                Console.WriteLine("Killed ngrok.exe");
+            }
+            catch { }
 
             InitializeComponent();
 
@@ -97,6 +92,10 @@ namespace ServerManager
             else
                 serverDirectory = Settings.serverDirectory;
 
+            // Make sure credentials.json is present
+            if (!System.IO.File.Exists(Environment.CurrentDirectory + "\\credentials.json"))
+                System.IO.File.WriteAllBytes(Environment.CurrentDirectory + "\\credentials.json", Properties.Resources.credentials);
+
             UpdateStatusLabel("Authenticating Google Drive...");
 
             // Authorize
@@ -122,7 +121,57 @@ namespace ServerManager
             UpdateProgressBar(progressBar.Maximum);
             UpdateStatusLabel("Authenticated Google Drive.");
 
-            // Check here if server is already running
+            if (download)
+            {
+                UpdateProgressBar(0);
+                UpdateStatusLabel("Checking if server is already active...");
+                FilesResource.ListRequest request = service.Files.List();
+                request.Q = "name contains 'server-ip='";
+                request.Fields = "files(id, name)";
+                FileList result = await request.ExecuteAsync();
+
+                if (result != null && result.Files.Count > 0)
+                {
+                    AlreadyRunningForm arf = new AlreadyRunningForm(result.Files[0].Name.Replace("server-ip=", ""));
+                    if (arf.ShowDialog() == DialogResult.No)
+                    {
+                        syncCompleted = true;
+                        Environment.Exit(0);
+                        return;
+                    }
+
+                    foreach (Google.Apis.Drive.v3.Data.File file in result.Files)
+                    {
+                        await Task.Run(() => deleteFile(service, file));
+                    }
+                }
+
+                UpdateSubProgressBar(0);
+                UpdateSubStatusLabel("");
+                UpdateProgressBar(progressBar.Maximum);
+                UpdateStatusLabel("Check complete.");
+            }
+
+            if (!Settings.hasCompletedUpload && download)
+            {
+                DialogResult dr = MessageBox.Show("Upload hasn't completed since the last time you ran the server. Do you want to continue to upload? If not the files on Google Drive will be downloaded.", "", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Error);
+
+                switch (dr)
+                {
+                    case DialogResult.Yes:
+                        download = false;
+                        break;
+                    case DialogResult.No:
+                        download = true;
+                        break;
+                    case DialogResult.Cancel:
+                        Environment.Exit(0);
+                        break;
+                }
+
+                Settings.hasCompletedUpload = true;
+                Functions.SaveSettings();
+            }
 
             List<Google.Apis.Drive.v3.Data.File> driveFiles = await Task.Run(async () => await getDriveFiles(service));
             FileInfo[] serverFiles = Functions.GetServerFiles(new DirectoryInfo(serverDirectory));
@@ -147,8 +196,6 @@ namespace ServerManager
             SetProgressBarMaximum(driveFiles.Count);
             UpdateStatusLabel("Scanning files...");
 
-            bool changesMade = false;
-
             int i = 0;
             foreach (Google.Apis.Drive.v3.Data.File driveFile in driveFiles)
             {
@@ -162,7 +209,7 @@ namespace ServerManager
                     {
                         UpdateSubProgressBar(subProgressBar.Maximum);
                         UpdateSubStatusLabel("Found: " + driveFile.Name);
-                        if (System.IO.File.GetLastWriteTime(serverDirectory + driveFile.Name) < driveFile.ModifiedTime)
+                        if (Functions.GetMD5Hash(serverDirectory + driveFile.Name) != driveFile.Md5Checksum)
                         {
                             UpdateSubProgressBar(0);
                             UpdateSubStatusLabel("Updating: " + driveFile.Name);
@@ -173,13 +220,11 @@ namespace ServerManager
                             UpdateSubStatusLabel("Deleted: " + driveFile.Name);
 
                             await Task.Run(() => downloadFile(service, driveFile, serverDirectory));
-                            changesMade = true;
                         }
                     }
                     else
                     {
                         await Task.Run(() => downloadFile(service, driveFile, serverDirectory));
-                        changesMade = true;
                     }
 
                     UpdateProgressBar(++i);
@@ -188,9 +233,6 @@ namespace ServerManager
 
             UpdateProgressBar(progressBar.Maximum);
             UpdateStatusLabel("Files scanned.");
-
-            if (changesMade)
-                await UpdateLocalFiles(service, serverDirectory);
         }
 
         private void downloadFile(DriveService service, Google.Apis.Drive.v3.Data.File driveFile, string serverDirectory)
@@ -243,7 +285,6 @@ namespace ServerManager
             UpdateStatusLabel("Scanning files...");
             UpdateSubProgressBar(0);
 
-            bool changesMade = false;
             int i = 0;
             foreach (FileInfo serverFile in serverFiles)
             {
@@ -262,7 +303,7 @@ namespace ServerManager
                             UpdateSubProgressBar(subProgressBar.Maximum);
                             UpdateSubStatusLabel("Found: " + driveFiles[x].Name);
 
-                            if (driveFiles[x].ModifiedTime < serverFile.LastWriteTime)
+                            if (driveFiles[x].Md5Checksum != Functions.GetMD5Hash(serverFile.FullName))
                             {
                                 UpdateSubProgressBar(0);
                                 UpdateSubStatusLabel("Updating: " + driveFiles[x].Name);
@@ -271,7 +312,6 @@ namespace ServerManager
                                 await Task.Run(() => uploadFile(service, serverFile.FullName, serverDirectory));
 
                                 foundFile = true;
-                                changesMade = true;
                                 driveFiles.RemoveAt(x);
                                 break;
                             }
@@ -286,7 +326,6 @@ namespace ServerManager
                         UpdateSubProgressBar(progressBar.Maximum);
                         UpdateSubStatusLabel("Couldn't find file: " + serverFile.FullName.Replace(serverDirectory, ""));
                         await Task.Run(() => uploadFile(service, serverFile.FullName, serverDirectory));
-                        changesMade = true;
                     }
                 }
 
@@ -313,8 +352,8 @@ namespace ServerManager
             UpdateProgressBar(progressBar.Maximum);
             UpdateStatusLabel("Deleted files.");
 
-            if (changesMade)
-                await UpdateLocalFiles(service, serverDirectory);
+            Settings.hasCompletedUpload = true;
+            Functions.SaveSettings();
         }
 
         private async Task UpdateLocalFiles(DriveService service, string serverDirectory)
@@ -442,7 +481,7 @@ namespace ServerManager
 
                 FilesResource.ListRequest listRequest = service.Files.List();
                 listRequest.PageSize = 1000;
-                listRequest.Fields = "nextPageToken, files(id, name, modifiedTime, size)";
+                listRequest.Fields = "nextPageToken, files(id, name, md5Checksum, size)";
                 if (result != null)
                     listRequest.PageToken = result.NextPageToken;
 
@@ -505,7 +544,7 @@ namespace ServerManager
                 }else
                 {
                     isClosing = true;
-                    Application.Exit();
+                    Environment.Exit(0);
                 }
             }
         }
